@@ -1,16 +1,41 @@
 console.log("LeetCode Sync: background service worker loaded");
 
+const BACKEND_URL = "http://localhost:8080/api/submission";
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "LEETCODE_SYNC_SUBMISSION") {
         console.log("LeetCode Sync: Submission received in background");
 
-        console.log("Payload:", message.payload);
+        sendToBackend(message.payload)
+            .then(response => {
+                console.log("LeetCode Sync: Backend success:", response);
+                sendResponse({ status: "success" });
+            })
+            .catch(error => {
+                console.error("LeetCode Sync: Backend error:", error);
+                sendResponse({ status: "error" });
+            });
 
-        // We will send to backend in next chunk
-
-        sendResponse({ status: "received" });
+        return true; // keep channel open for async response
     }
-
-    // Return true to indicate asynchronous response if needed mostly used with fetch
-    return true;
 });
+
+async function sendToBackend(payload) {
+    try {
+        const response = await fetch(BACKEND_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Backend returned ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        throw error;
+    }
+}
