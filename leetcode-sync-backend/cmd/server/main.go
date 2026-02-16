@@ -1,12 +1,15 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"leetcode-sync-engine/internal/database"
 	"leetcode-sync-engine/internal/handlers"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 	database.Init()
 
 	r := gin.Default()

@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"leetcode-sync-engine/internal/database"
 	"leetcode-sync-engine/internal/models"
+	"leetcode-sync-engine/internal/services/github"
 	"leetcode-sync-engine/internal/utils"
 )
 
@@ -82,6 +85,36 @@ func HandleSubmission(c *gin.Context) {
 			return
 		}
 
+		// --- GitHub Commit Integration ---
+		gh := github.NewGitHubService()
+
+		folderPath := fmt.Sprintf(
+			"leetcode/%s/%s",
+			submission.Difficulty,
+			submission.Slug,
+		)
+
+		filePath := fmt.Sprintf(
+			"%s/solution.%s",
+			folderPath,
+			getExt(submission.Language),
+		)
+
+		commitMessage := fmt.Sprintf(
+			"feat: add %s (%s)",
+			submission.Title,
+			submission.Difficulty,
+		)
+
+		err = gh.CreateOrUpdateFile(filePath, submission.Code, commitMessage)
+		if err != nil {
+			fmt.Println("GitHub Error:", err) // Debug log
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "GitHub commit failed: " + err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status":      "new_problem",
 			"solve_count": 1,
@@ -108,4 +141,48 @@ func HandleSubmission(c *gin.Context) {
 		"status":      "revisit",
 		"solve_count": newCount,
 	})
+}
+
+func getExt(language string) string {
+	lang := strings.ToLower(language)
+	switch lang {
+	case "cpp", "c++":
+		return "cpp"
+	case "java":
+		return "java"
+	case "python", "python3":
+		return "py"
+	case "c":
+		return "c"
+	case "c#":
+		return "cs"
+	case "javascript":
+		return "js"
+	case "typescript":
+		return "ts"
+	case "php":
+		return "php"
+	case "swift":
+		return "swift"
+	case "kotlin":
+		return "kt"
+	case "dart":
+		return "dart"
+	case "golang", "go":
+		return "go"
+	case "ruby":
+		return "rb"
+	case "scala":
+		return "scala"
+	case "rust":
+		return "rs"
+	case "racket":
+		return "rkt"
+	case "erlang":
+		return "erl"
+	case "elixir":
+		return "ex"
+	default:
+		return "txt"
+	}
 }
