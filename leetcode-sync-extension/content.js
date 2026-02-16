@@ -126,7 +126,11 @@ window.addEventListener("message", function (event) {
             code: code
         };
 
-        console.log("LeetCode Sync: Full submission payload:", submissionPayload);
+        // Send to background script
+        chrome.runtime.sendMessage({
+            type: "LEETCODE_SYNC_SUBMISSION",
+            payload: submissionPayload
+        });
     }
 });
 
@@ -153,8 +157,6 @@ function checkForAccepted() {
                 type: "LEETCODE_SYNC_GET_CODE"
             }, "*");
         }, 500);
-
-        alert("Accepted submission detected!");
     }
 }
 
