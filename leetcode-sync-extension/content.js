@@ -1,3 +1,10 @@
+const script = document.createElement("script");
+script.src = chrome.runtime.getURL("inject.js");
+script.onload = function () {
+    this.remove();
+};
+(document.head || document.documentElement).appendChild(script);
+
 console.log("LeetCode Sync: content script loaded (observer mode)");
 
 let submissionProcessed = false;
@@ -97,10 +104,31 @@ function extractMetadata() {
         timestamp: new Date().toISOString()
     };
 
-    console.log("LeetCode Sync: Extracted metadata:", metadata);
-
     return metadata;
 }
+
+// Listen for code response from inject.js
+window.addEventListener("message", function (event) {
+    if (event.source !== window) return;
+
+    if (event.data.type === "LEETCODE_SYNC_CODE_RESPONSE") {
+        const code = event.data.code;
+
+        if (!code) {
+            console.log("LeetCode Sync: No code found");
+            return;
+        }
+
+        const metadata = extractMetadata();
+
+        const submissionPayload = {
+            ...metadata,
+            code: code
+        };
+
+        console.log("LeetCode Sync: Full submission payload:", submissionPayload);
+    }
+});
 
 function checkForAccepted() {
     if (submissionProcessed) return;
@@ -118,7 +146,14 @@ function checkForAccepted() {
         console.log("LeetCode Sync: Accepted detected");
 
         submissionProcessed = true;
-        extractMetadata(); // Extract metadata only after success
+
+        // Request code from page context with a small delay to ensure Monaco is ready
+        setTimeout(() => {
+            window.postMessage({
+                type: "LEETCODE_SYNC_GET_CODE"
+            }, "*");
+        }, 500);
+
         alert("Accepted submission detected!");
     }
 }

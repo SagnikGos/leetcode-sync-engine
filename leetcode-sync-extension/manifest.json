@@ -3,7 +3,9 @@
   "name": "LeetCode GitHub Sync",
   "version": "0.1",
   "description": "Sync accepted LeetCode submissions to GitHub.",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://leetcode.com/*",
     "http://localhost:8080/*"
@@ -13,9 +15,23 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://leetcode.com/problems/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "inject.js"
+      ],
+      "matches": [
+        "https://leetcode.com/*"
+      ]
     }
   ]
 }
