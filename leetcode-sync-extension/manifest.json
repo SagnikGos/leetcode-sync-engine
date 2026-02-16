@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "LeetCode GitHub Sync",
+  "version": "0.1",
+  "description": "Sync accepted LeetCode submissions to GitHub.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "http://localhost:8080/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
